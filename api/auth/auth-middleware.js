@@ -1,5 +1,5 @@
 const db = require('../../data/db-config')
-
+const Users = require('../users/users-model')
 /*
   If the user does not have a session saved in the server
 
@@ -9,7 +9,7 @@ const db = require('../../data/db-config')
   }
 */
 function restricted(req, res, next) {
-  if (req.session && req.session.user_id) {
+  if (req.session.user) {
     next()
   } else {
     res.status(401).json({message: "You shall not pass!"})
@@ -45,11 +45,12 @@ function checkUsernameFree(req, res, next) {
   }
 */
 function checkUsernameExists(req, res, next) {
-  db('users').where('username', req.body.username)
+  Users.findBy({username: req.body.username})
     .then(exists => {
       if (!exists.length) {
         res.status(401).json({message: "Invalid credentials"})
       } else {
+        req.user = exists[0]
         next();
       }
     })
